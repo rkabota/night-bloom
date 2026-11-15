@@ -78,6 +78,10 @@
       // ?emulate&autoplay walks the emulated hand through the whole ritual, for filming the demo.
       if (window.__xrDevice && params.has('autoplay') && window.__nightBloom) {
         const { createAutopilot } = await import('./src/autopilot.js?v=10');
+        const device = window.__xrDevice;
+        device.fovy = (70 * Math.PI) / 180; // a tighter shot than the headset's wide view, for filming
+        const pitch = (-12 * Math.PI) / 180; // look slightly down at the table
+        device.quaternion.set(Math.sin(pitch / 2), 0, 0, Math.cos(pitch / 2));
         const note = document.getElementById('xr-note');
         if (note) note.textContent = 'Autoplay is on: press Enter night sky and the hand will do the rest.';
         window.__nightBloomFrame = createAutopilot(window.__xrDevice, window.__nightBloom, (msg) => {
@@ -90,9 +94,6 @@
       // ?record (with ?emulate&autoplay): films the canvas and sound from Enter to the bloom,
       // then saves night-bloom-demo.webm to the Downloads folder.
       function recordDemo(app, device, note) {
-        device.fovy = (70 * Math.PI) / 180; // a tighter shot than the headset's wide view
-        const pitch = (-12 * Math.PI) / 180; // look slightly down at the table
-        device.quaternion.set(Math.sin(pitch / 2), 0, 0, Math.cos(pitch / 2));
         if (note) note.textContent = 'Recording is on: press Enter night sky. The video saves to Downloads when the flower blooms.';
         const badge = document.createElement('div');
         badge.style.cssText = 'position:fixed;top:12px;right:12px;z-index:99;padding:6px 12px;border-radius:999px;font:600 14px system-ui;color:#fff;background:#c0263a;display:none';
