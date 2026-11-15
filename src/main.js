@@ -14,7 +14,7 @@ import {
 } from './garden.js';
 import { createFlower, createPot } from './flower.js';
 import { makeLabel, layoutArc } from './ui.js';
-import { createAudio } from './audio.js';
+import { createAudio } from './audio.js?v=10';
 
 const JOINT_NAMES = [
   'wrist',
@@ -697,6 +697,8 @@ if (new URLSearchParams(window.location.search).has('autoplay')) {
     },
     flowerPosition: () => altar.getWorldPosition(new THREE.Vector3()),
     meshes: () => ({ moon, thoughtChips, thoughts: THOUGHTS, intentionChips, intentions: INTENTIONS, doneChip }),
+    canvas: () => renderer.domElement,
+    audioStream: () => audio?.stream() ?? null,
   };
 }
 

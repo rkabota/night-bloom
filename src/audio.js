@@ -3,7 +3,7 @@
 
 export function createAudio() {
   const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-  if (!AC) return { breathe() {}, chime() {}, bloom() {}, setMuted() {}, resume() {}, suspend() {} };
+  if (!AC) return { breathe() {}, chime() {}, bloom() {}, setMuted() {}, resume() {}, suspend() {}, stream: () => null };
   const ctx = new AC();
   const master = ctx.createGain();
   master.gain.value = 0.7;
@@ -37,7 +37,16 @@ export function createAudio() {
     osc.stop(start + length + 0.05);
   }
 
+  let tap = null;
   return {
+    /** A MediaStream of everything played, for recording the demo. */
+    stream() {
+      if (!tap) {
+        tap = ctx.createMediaStreamDestination();
+        master.connect(tap);
+      }
+      return tap.stream;
+    },
     resume: () => ctx.resume(),
     suspend: () => ctx.suspend(),
     /** level 0..1 follows the breath guide */

@@ -74,16 +74,60 @@
           show('Emulator failed to load: ' + err);
         }
       }
-      await import('./src/main.js?v=8');
+      await import('./src/main.js?v=10');
       // ?emulate&autoplay walks the emulated hand through the whole ritual, for filming the demo.
       if (window.__xrDevice && params.has('autoplay') && window.__nightBloom) {
-        const { createAutopilot } = await import('./src/autopilot.js?v=8');
+        const { createAutopilot } = await import('./src/autopilot.js?v=10');
         const note = document.getElementById('xr-note');
         if (note) note.textContent = 'Autoplay is on: press Enter night sky and the hand will do the rest.';
         window.__nightBloomFrame = createAutopilot(window.__xrDevice, window.__nightBloom, (msg) => {
           const el = document.getElementById('emulate-log');
           if (el && msg) { el.style.display = 'block'; el.textContent += msg + '\n'; }
         });
+        if (params.has('record')) recordDemo(window.__nightBloom, window.__xrDevice, note);
+      }
+
+      // ?record (with ?emulate&autoplay): films the canvas and sound from Enter to the bloom,
+      // then saves night-bloom-demo.webm to the Downloads folder.
+      function recordDemo(app, device, note) {
+        device.fovy = (70 * Math.PI) / 180; // a tighter shot than the headset's wide view
+        const pitch = (-12 * Math.PI) / 180; // look slightly down at the table
+        device.quaternion.set(Math.sin(pitch / 2), 0, 0, Math.cos(pitch / 2));
+        if (note) note.textContent = 'Recording is on: press Enter night sky. The video saves to Downloads when the flower blooms.';
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:fixed;top:12px;right:12px;z-index:99;padding:6px 12px;border-radius:999px;font:600 14px system-ui;color:#fff;background:#c0263a;display:none';
+        badge.textContent = '● Recording';
+        document.body.append(badge);
+        let rec = null;
+        let bloomAt = null;
+        const chunks = [];
+        const timer = setInterval(() => {
+          if (!rec && app.presenting()) {
+            const stream = app.canvas().captureStream(30);
+            app.audioStream()?.getAudioTracks().forEach((t) => stream.addTrack(t));
+            const type = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t));
+            rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8_000_000 });
+            rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+            rec.onstop = () => {
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+              a.download = 'night-bloom-demo.webm';
+              document.body.append(a);
+              a.click();
+              badge.textContent = 'Saved night-bloom-demo.webm';
+              badge.style.background = '#2f7d4f';
+            };
+            rec.start(1000);
+            badge.style.display = 'block';
+          }
+          if (rec?.state === 'recording') {
+            if (app.step() === 'bloom' && bloomAt == null) bloomAt = performance.now();
+            if (bloomAt != null && performance.now() - bloomAt > 10000) {
+              rec.stop();
+              clearInterval(timer);
+            }
+          }
+        }, 250);
       }
     </script>
   </body>
