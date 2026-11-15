@@ -108,7 +108,10 @@ export function createAutopilot(device, app, log = () => {}) {
       mesh.getWorldPosition(target);
       if (a.phase === 'reach') {
         const d = glide(from, target, dt);
-        if (d < CLOSE || elapsed > ACTION_TIMEOUT) a.phase = 'pinch';
+        if (d < CLOSE || elapsed > ACTION_TIMEOUT) {
+          a.phase = 'pinch';
+          console.info(`[autoplay] pinch ${a.label}: ${(d * 100).toFixed(1)} cm away after ${elapsed.toFixed(1)} s`);
+        }
       } else if (a.phase === 'pinch') {
         glide(from, target, dt);
         a.pinch = Math.min(1, a.pinch + dt * 4);

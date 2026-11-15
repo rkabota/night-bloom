@@ -360,7 +360,10 @@ function nearest(point, reach, useItemReach = true) {
 }
 
 function select(item) {
-  if (item && item.enabled()) item.onSelect();
+  if (item && item.enabled()) {
+    if (window.__nightBloom) console.info(`[autoplay] picked item ${interactables.indexOf(item)} in ${ritual.step()}`);
+    item.onSelect();
+  }
 }
 
 const hovered = new Set();
