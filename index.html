@@ -51,6 +51,29 @@
       <p id="xr-note">Hands only. No controllers needed. Best seated.</p>
       <label><input id="mute" type="checkbox" /> Mute sound</label>
     </section>
-    <script type="module" src="./src/main.js"></script>
+    <script type="module">
+      // ?emulate loads Meta's WebXR emulator (IWER) so the app can be tried on a desktop browser.
+      // Normal visits (and the Quest) skip this and use the real WebXR runtime.
+      const params = new URLSearchParams(location.search);
+      if (params.has('emulate')) {
+        const log = document.createElement('pre');
+        log.id = 'emulate-log';
+        log.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;margin:0;padding:8px;z-index:99;font:12px/1.4 monospace;color:#ffd6d6;background:rgba(40,0,0,.8);border-radius:8px;white-space:pre-wrap;display:none';
+        document.body.append(log);
+        const show = (msg) => { log.style.display = 'block'; log.textContent += msg + '\n'; };
+        addEventListener('error', (e) => show('Error: ' + (e.message || e)));
+        addEventListener('unhandledrejection', (e) => show('Rejected: ' + (e.reason?.stack || e.reason)));
+        try {
+          const { XRDevice, metaQuest3 } = await import('https://cdn.jsdelivr.net/npm/iwer@2.7.0/build/iwer.module.js');
+          const device = new XRDevice(metaQuest3);
+          device.primaryInputMode = params.get('emulate') === 'controller' ? 'controller' : 'hand';
+          device.installRuntime({ forceInstall: true });
+          window.__xrDevice = device;
+        } catch (err) {
+          show('Emulator failed to load: ' + err);
+        }
+      }
+      await import('./src/main.js');
+    </script>
   </body>
 </html>
