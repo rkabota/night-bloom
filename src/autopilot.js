@@ -6,6 +6,7 @@ import * as THREE from 'three';
 const SPEED = 5; // how quickly the hand glides toward its target (per second)
 const CLOSE = 0.008; // metres: near enough to pinch
 const ACTION_TIMEOUT = 8; // seconds before an action gives up
+const PRE_PINCH = 0.55; // pinch value while reaching: fingers half closed, not yet a pinch
 
 /**
  * device: the IWER XRDevice. app: hooks exposed by main.js.
@@ -107,14 +108,17 @@ export function createAutopilot(device, app, log = () => {}) {
       if (!mesh || !from) return;
       mesh.getWorldPosition(target);
       if (a.phase === 'reach') {
+        // reach with the fingers half closed, so the pinch point barely moves when they close
+        a.pinch = Math.min(PRE_PINCH, a.pinch + dt * 2);
+        hand.updatePinchValue(a.pinch);
         const d = glide(from, target, dt);
         if (d < CLOSE || elapsed > ACTION_TIMEOUT) {
           a.phase = 'pinch';
           console.info(`[autoplay] pinch ${a.label}: ${(d * 100).toFixed(1)} cm away after ${elapsed.toFixed(1)} s`);
         }
       } else if (a.phase === 'pinch') {
-        glide(from, target, dt);
-        a.pinch = Math.min(1, a.pinch + dt * 4);
+        glide(from, target, dt * 3);
+        a.pinch = Math.min(1, a.pinch + dt * 1.5);
         hand.updatePinchValue(a.pinch);
         if (a.pinch >= 1) a.phase = 'hold';
       } else if (a.phase === 'hold') {

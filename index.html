@@ -74,10 +74,10 @@
           show('Emulator failed to load: ' + err);
         }
       }
-      await import('./src/main.js');
+      await import('./src/main.js?v=6');
       // ?emulate&autoplay walks the emulated hand through the whole ritual, for filming the demo.
       if (window.__xrDevice && params.has('autoplay') && window.__nightBloom) {
-        const { createAutopilot } = await import('./src/autopilot.js');
+        const { createAutopilot } = await import('./src/autopilot.js?v=6');
         const note = document.getElementById('xr-note');
         if (note) note.textContent = 'Autoplay is on: press Enter night sky and the hand will do the rest.';
         window.__nightBloomFrame = createAutopilot(window.__xrDevice, window.__nightBloom, (msg) => {
