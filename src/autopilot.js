@@ -3,7 +3,7 @@
 // It only moves the emulated hand; the app sees ordinary hand-tracking input.
 import * as THREE from 'three';
 
-const SPEED = 5; // how quickly the hand glides toward its target (per second)
+const SPEED = 3; // how quickly the hand glides toward its target (per second)
 const CLOSE = 0.008; // metres: near enough to pinch
 const ACTION_TIMEOUT = 8; // seconds before an action gives up
 const PRE_PINCH = 0.55; // pinch value while reaching: fingers half closed, not yet a pinch
@@ -200,7 +200,7 @@ export function createAutopilot(device, app, log = () => {}) {
     if (!queue) {
       if (!app.joints('right')) return;
       queue = buildQueue();
-      if (other) other.position.set(other.position.x - 0.15, other.position.y - 0.3, other.position.z + 0.1); // left hand at rest
+      if (other) other.connected = false; // one hand keeps the shot clean
     }
     try {
       step(Math.min(dt, 0.1));
