@@ -47,6 +47,13 @@ if (demoCount > 0) {
 const store = createGardenStore(storage);
 
 // ---------- renderer, scene, camera ----------
+// three.js needs WebGL2. Without it, say so plainly instead of leaving a dead page.
+if (!document.createElement('canvas').getContext('webgl2')) {
+  document.getElementById('xr-note').textContent =
+    "This browser can't draw 3D. Open this page in the Meta Quest Browser, or a desktop browser with graphics acceleration on.";
+  document.getElementById('preview').hidden = true;
+  throw new Error('WebGL2 is not available in this browser.');
+}
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
