@@ -23,6 +23,8 @@ npm test       # unit tests for gestures, ritual, garden and the dev server
 - **Desktop with simulated hands**: install the Immersive Web Emulator extension, pick a Quest 3 device, then enter.
 - **On a Quest over USB**: `adb reverse tcp:8080 tcp:8080`, then open http://localhost:8080 in the Quest Browser.
 - **Demo garden for filming**: add `?demo=7` to the URL. Demo nights live in memory and never overwrite real data.
+- **No headset (desktop simulator)**: add `?emulate` to the URL in desktop Chrome. It loads Meta's Immersive Web Emulation Runtime (IWER) and pretends to be a Quest 3 with hand tracking.
+- **Hands-free demo for recording**: open `?emulate&autoplay&demo=7`, press **Enter night sky**, and an emulated hand pinches through the whole ritual (about 90 seconds). Screen-record that for the demo video; the rules accept simulator footage.
 
 ## Publish (for judges)
 
