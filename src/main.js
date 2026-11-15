@@ -1,6 +1,6 @@
 // Night Bloom: a hands-first wind-down ritual for Meta Quest (WebXR + three.js).
 import * as THREE from 'three';
-import { createPinchDetector, handOpenness, isPalmUp, distance } from './gestures.js';
+import { createPinchDetector, handOpenness, isPalmUp, palmNormal, distance } from './gestures.js';
 import { createRitual, THOUGHTS, INTENTIONS } from './ritual.js';
 import {
   createGardenStore,
@@ -525,6 +525,7 @@ renderer.setAnimationLoop((time, frame) => {
   }
 
   if (!paused) {
+    window.__nightBloomFrame?.(dt); // emulator autoplay only (?emulate&autoplay)
     updateHands(dt);
     runTweens(dt);
     animate(dt, time / 1000);
@@ -676,6 +677,24 @@ function makeNightSky() {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   return new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xcfc6ff, size: 0.04, sizeAttenuation: true }));
+}
+
+// ---------- hooks for the desktop emulator's autoplay (index.html ?emulate&autoplay) ----------
+if (new URLSearchParams(window.location.search).has('autoplay')) {
+  const findHand = (side) => hands.find((h) => h.handedness === side);
+  window.__nightBloom = {
+    step: () => ritual.step(),
+    breath: () => ritual.breath(),
+    presenting: () => renderer.xr.isPresenting,
+    placed: () => placed,
+    joints: (side) => findHand(side)?.joints ?? null,
+    palmNormal: (side) => {
+      const h = findHand(side);
+      return h?.joints ? palmNormal(h.joints, side) : null;
+    },
+    flowerPosition: () => altar.getWorldPosition(new THREE.Vector3()),
+    meshes: () => ({ moon, thoughtChips, thoughts: THOUGHTS, intentionChips, intentions: INTENTIONS, doneChip }),
+  };
 }
 
 // ---------- boot ----------

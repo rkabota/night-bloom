@@ -65,7 +65,8 @@
         addEventListener('unhandledrejection', (e) => show('Rejected: ' + (e.reason?.stack || e.reason)));
         try {
           const { XRDevice, metaQuest3 } = await import('https://cdn.jsdelivr.net/npm/iwer@2.7.0/build/iwer.module.js');
-          const device = new XRDevice(metaQuest3);
+          const device = new XRDevice(metaQuest3, { stereoEnabled: false });
+          device.position.set(0, 1.2, 0); // seated eye height
           device.primaryInputMode = params.get('emulate') === 'controller' ? 'controller' : 'hand';
           device.installRuntime({ forceInstall: true });
           window.__xrDevice = device;
@@ -74,6 +75,16 @@
         }
       }
       await import('./src/main.js');
+      // ?emulate&autoplay walks the emulated hand through the whole ritual, for filming the demo.
+      if (window.__xrDevice && params.has('autoplay') && window.__nightBloom) {
+        const { createAutopilot } = await import('./src/autopilot.js');
+        const note = document.getElementById('xr-note');
+        if (note) note.textContent = 'Autoplay is on: press Enter night sky and the hand will do the rest.';
+        window.__nightBloomFrame = createAutopilot(window.__xrDevice, window.__nightBloom, (msg) => {
+          const el = document.getElementById('emulate-log');
+          if (el && msg) { el.style.display = 'block'; el.textContent += msg + '\n'; }
+        });
+      }
     </script>
   </body>
 </html>
