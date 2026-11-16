@@ -19,6 +19,7 @@ const CLIPS = ['intro', ...STEP_NAMES, 'outro'];
 const INTRO_SECONDS = 5;
 const OUTRO_SECONDS = 7;
 const AFTER_BLOOM_SECONDS = 7; // after the bloom narration ends, before the end card
+const MIN_STEP_SECONDS = 4.5; // each new caption stays up this long before the hand acts, voice or not
 
 export function recordDemo({ app, device, note, base = './assets/narration/' }) {
   if (note) note.textContent = 'Recording is on: press Enter night sky. The 1080p video saves to Downloads at the end.';
@@ -66,7 +67,8 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
     pump();
   }
   // The autopilot waits on this so the hand moves after the voice has introduced the step.
-  app.narrating = () => voicesPending > 0;
+  let holdUntil = 0;
+  app.narrating = () => voicesPending > 0 || performance.now() < holdUntil;
 
   const out = document.createElement('canvas');
   out.width = W;
@@ -122,6 +124,7 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
       console.info(`[record] saved ${a.download}, ${mb} MB, ${type}`);
     };
     startedAt = performance.now();
+    holdUntil = startedAt + (INTRO_SECONDS + 1 + MIN_STEP_SECONDS) * 1000;
     rec.start(1000);
     badge.style.display = 'block';
     out.style.display = 'block';
@@ -141,7 +144,10 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
 
     const step = app.step();
     if (step !== lastStep) {
-      if (lastStep) say(step);
+      if (lastStep) {
+        say(step);
+        holdUntil = now + MIN_STEP_SECONDS * 1000;
+      }
       lastStep = step;
       stepChangedAt = now;
     }
@@ -192,7 +198,7 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
     ctx.fillText('Night Bloom', 56, 44);
     ctx.fillStyle = QUIET;
     ctx.font = `400 24px ${FONT}`;
-    ctx.fillText('Meta Quest 3 emulator · hand tracking', 56, 88);
+    ctx.fillText('Meta Quest 3 emulator · the dots are your tracked hand', 56, 88);
     ctx.restore();
 
     // step tracker, top right

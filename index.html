@@ -89,7 +89,7 @@
           if (el && msg) { el.style.display = 'block'; el.textContent += msg + '\n'; }
         });
         if (params.has('record')) {
-          const { recordDemo } = await import('./src/recorder.js?v=12');
+          const { recordDemo } = await import('./src/recorder.js?v=13');
           recordDemo({ app: window.__nightBloom, device, note });
         }
       }
