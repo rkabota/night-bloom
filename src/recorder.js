@@ -72,6 +72,9 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
   out.width = W;
   out.height = H;
   const ctx = out.getContext('2d');
+  // Show exactly what is being recorded, captions included, on top of the emulator view.
+  out.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain;background:#07040d;z-index:9998;display:none';
+  document.body.append(out);
 
   let rec = null;
   let startedAt = 0;
@@ -121,6 +124,7 @@ export function recordDemo({ app, device, note, base = './assets/narration/' }) 
     startedAt = performance.now();
     rec.start(1000);
     badge.style.display = 'block';
+    out.style.display = 'block';
     say('intro');
     say('arrive');
   }
