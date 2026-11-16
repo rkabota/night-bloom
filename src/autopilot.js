@@ -28,6 +28,8 @@ export function createAutopilot(device, app, log = () => {}) {
   const wait = (seconds) => ({ kind: 'wait', seconds });
   const breathe = () => ({ kind: 'breathe', phase: 'lower', tries: null });
   const until = (test, label) => ({ kind: 'until', test, label });
+  // While the demo recorder is speaking a step's narration, hold the hand so voice and action line up.
+  const gate = (label) => ({ kind: 'until', test: () => !app.narrating?.(), label: `${label} narration`, limit: 30 });
 
   function buildQueue() {
     const m = app.meshes();
@@ -35,9 +37,11 @@ export function createAutopilot(device, app, log = () => {}) {
     const intention = (name) => () => m.intentionChips[m.intentions.indexOf(name)];
     return [
       wait(2.5),
+      gate('arrive'),
       pick(() => m.moon, 'moon'),
       until(() => app.step() === 'unload', 'unload'),
       wait(2),
+      gate('unload'),
       pick(thought('Work'), 'Work'),
       wait(0.8),
       pick(thought('Money'), 'Money'),
@@ -48,6 +52,7 @@ export function createAutopilot(device, app, log = () => {}) {
       until(() => app.step() === 'breathe', 'breathe'),
       breathe(),
       wait(1.5),
+      gate('plant'),
       pick(intention('Rest well'), 'Rest well'),
       until(() => app.step() === 'bloom', 'bloom'),
       { kind: 'rest' },
@@ -89,7 +94,7 @@ export function createAutopilot(device, app, log = () => {}) {
     }
     if (a.kind === 'until') {
       if (a.test()) current = null;
-      else if (elapsed > 20) {
+      else if (elapsed > (a.limit ?? 20)) {
         log(`Autoplay: still waiting for ${a.label}`);
         current = null;
       }

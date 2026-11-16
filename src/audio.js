@@ -3,7 +3,7 @@
 
 export function createAudio() {
   const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
-  if (!AC) return { breathe() {}, chime() {}, bloom() {}, setMuted() {}, resume() {}, suspend() {}, stream: () => null };
+  if (!AC) return { breathe() {}, chime() {}, bloom() {}, setMuted() {}, resume() {}, suspend() {}, stream: () => null, voice: async () => {} };
   const ctx = new AC();
   const master = ctx.createGain();
   master.gain.value = 0.7;
@@ -46,6 +46,19 @@ export function createAudio() {
         master.connect(tap);
       }
       return tap.stream;
+    },
+    /** Plays a recorded voice clip (demo narration) through the mix, so the recorder hears it. Resolves when it ends. */
+    async voice(arrayBuffer) {
+      const buffer = await ctx.decodeAudioData(arrayBuffer);
+      return new Promise((resolve) => {
+        const src = ctx.createBufferSource();
+        const g = ctx.createGain();
+        src.buffer = buffer;
+        g.gain.value = 1.3;
+        src.connect(g).connect(master);
+        src.onended = resolve;
+        src.start();
+      });
     },
     resume: () => ctx.resume(),
     suspend: () => ctx.suspend(),

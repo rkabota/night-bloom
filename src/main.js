@@ -14,7 +14,7 @@ import {
 } from './garden.js';
 import { createFlower, createPot } from './flower.js';
 import { makeLabel, layoutArc } from './ui.js';
-import { createAudio } from './audio.js?v=10';
+import { createAudio } from './audio.js?v=11';
 
 const JOINT_NAMES = [
   'wrist',
@@ -534,6 +534,7 @@ renderer.setAnimationLoop((time, frame) => {
     animate(dt, time / 1000);
   }
   renderer.render(scene, camera);
+  window.__nightBloomAfterRender?.(); // demo recorder only (?record): copies the frame while it is still in the buffer
 });
 
 function animate(dt, seconds) {
@@ -699,6 +700,7 @@ if (new URLSearchParams(window.location.search).has('autoplay')) {
     meshes: () => ({ moon, thoughtChips, thoughts: THOUGHTS, intentionChips, intentions: INTENTIONS, doneChip }),
     canvas: () => renderer.domElement,
     audioStream: () => audio?.stream() ?? null,
+    voice: (arrayBuffer) => audio?.voice(arrayBuffer),
   };
 }
 
